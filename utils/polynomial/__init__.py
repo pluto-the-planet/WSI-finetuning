@@ -1,1 +1,1 @@
-from topk.polynomial.sp import LogSumExp, log_sum_exp
+from utils.polynomial.sp import LogSumExp, log_sum_exp
