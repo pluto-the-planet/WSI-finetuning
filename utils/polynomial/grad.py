@@ -1,7 +1,7 @@
 import torch
 
 from future.builtins import range
-from topk.logarithm import LogTensor
+from utils.logarithm import LogTensor
 
 
 def recursion(S, X, j):
