@@ -336,11 +336,10 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 
 		if not self.use_h5:
 			if self.data_dir:
-				print(data_dir)
-				print("slide_id")
-				print(slides_id)
+				print("data_dir",data_dir)
+				print("slide_id",slides_id)
 				full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
-				print(full_path)
+				print("full_path",full_path)
 				if os.path.exists(full_path):
 					features = torch.load(full_path)
 				else:
