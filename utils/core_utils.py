@@ -123,7 +123,7 @@ def train(datasets, cur, args):
     print('\nInit train/val/test splits...', end=' ')
     train_split, val_split, test_split = datasets
     # val_split = test_split
-    # save_splits(datasets, ['train', 'val', 'test'], os.path.join(args.results_dir, 'splits_{}.csv'.format(cur)))
+    save_splits(datasets, ['train', 'val', 'test'], os.path.join(args.results_dir, 'splits_{}.csv'.format(cur)))
     print('Done!')
     print("Training on {} samples".format(len(train_split)))
     print("Validating on {} samples".format(len(val_split)))
@@ -541,7 +541,9 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
     sample_size = model.k_sample
     with torch.no_grad():
         for batch_idx, (data, label) in enumerate(loader):
-            data, label = data.to(device), label.to(device)      
+            data, label = data.to(device), label.to(device)
+            print(data)
+            print(label)
             logits, Y_prob, Y_hat, _, instance_dict = model(data, label=label, instance_eval=True,testing=True)
             acc_logger.log(Y_hat, label)
             
