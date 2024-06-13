@@ -341,22 +341,22 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 				full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
 				#print("full_path",full_path)
 				if os.path.exists(full_path):
-					features = torch.load(full_path)
 					print("does it run")
+					features = torch.load(full_path)
 				else:
 					slide_id = self.slide_data['slide_id'][idx-1]
 					label = self.slide_data['label'][idx-1]
 					full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
+					print("okay yeh chal raha")
 					features = torch.load(full_path)
-					prin("okay yeh chal raha")
 				return features, label
 			
 			else:
 				return slide_id, label
 
 		else:
-			full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(slide_id))
 			print("ya yeh chal rha")
+			full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(slide_id))
 			with h5py.File(full_path,'r') as hdf5_file:
 				features = hdf5_file['features'][:]
 				coords = hdf5_file['coords'][:]
