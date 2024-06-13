@@ -48,7 +48,9 @@ def main(args):
         train_dataset, val_dataset, test_dataset = dataset.return_splits(from_id=False,
                 csv_path='{}/splits_{}.csv'.format(args.split_dir, i))
         # train_loader = get_split_loader(train_dataset)
+        print(train_dataset)
         datasets = (train_dataset, val_dataset, test_dataset)
+        print(datasets)
         results, test_auc, val_auc, test_acc, val_acc  = train(datasets, i, args)
         all_test_auc.append(test_auc)
         all_val_auc.append(val_auc)
