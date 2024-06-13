@@ -1,4 +1,7 @@
 ,train,val,test
-0,tumor_037,tumor_038,test_039
-1,tumor_040,tumor_041,test_042
-2,tumor_050,normal_051,test_052
+0,tumor_041,tumor_044,tumor_046
+1,tumor_041,tumor_044,tumor_049
+2,tumor_041,tumor_044,tumor_050
+3,tumor_041,tumor_048,tumor_046
+4,tumor_050,tumor_044,tumor_046
+5,tumor_049,tumor_044,tumor_046
