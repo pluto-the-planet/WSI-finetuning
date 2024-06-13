@@ -23,6 +23,7 @@ import numpy as np
 
 def main(args):
     # create results directory if necessary
+    print("results_dir",results_dir)
     if not os.path.isdir(args.results_dir):
         os.mkdir(args.results_dir)
 
