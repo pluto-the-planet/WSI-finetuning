@@ -339,7 +339,7 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 				#print("data_dir",data_dir)
 				#print("slide_id",slide_id)
 				full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
-				#print("full_path",full_path)
+				print("full_path1",full_path)
 				if os.path.exists(full_path):
 					print("does it run")
 					features = torch.load(full_path)
@@ -348,6 +348,8 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 					label = self.slide_data['label'][idx-1]
 					full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
 					print("okay yeh chal raha")
+					print("full_path",full_path)
+					print(os.getcwd())
 					features = torch.load(full_path)
 				return features, label
 			
