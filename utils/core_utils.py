@@ -103,7 +103,27 @@ class EarlyStopping:
             print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
         torch.save(model.state_dict(), ckpt_name)
         self.val_loss_min = val_loss
+import os
+import pandas as pd
 
+# Assuming datasets is a dictionary with keys 'train', 'val', 'test'
+# and each key contains a DataFrame or other iterable data structure
+datasets = {
+    'train': train_data,  # replace train_data with your actual training data
+    'val': val_data,      # replace val_data with your actual validation data
+    'test': test_data     # replace test_data with your actual test data
+}
+
+def save_splits(datasets, split_names, file_path):
+    # Combine all splits into a single DataFrame with an additional column indicating the split
+    combined_df = pd.DataFrame()
+    for split_name in split_names:
+        split_df = pd.DataFrame(datasets[split_name])
+        split_df['split'] = split_name
+        combined_df = pd.concat([combined_df, split_df], ignore_index=True)
+    # Save the combined DataFrame to a CSV file
+    combined_df.to_csv(file_path, index=False)
+    
 def train(datasets, cur, args):
     """   
         train for a single fold
@@ -123,6 +143,9 @@ def train(datasets, cur, args):
     print('\nInit train/val/test splits...', end=' ')
     train_split, val_split, test_split = datasets
     # val_split = test_split
+    # Example usage
+    cur = 1  # Replace with your current iteration or identifier
+    save_splits(datasets, ['train', 'val', 'test'], os.path.join(args.results_dir, 'splits_{}.csv'.format(cur)))
     #save_splits(datasets, ['train', 'val', 'test'], os.path.join(args.results_dir, 'splits_{}.csv'.format(cur)))
     print('Done!')
     print("Training on {} samples".format(len(train_split)))
