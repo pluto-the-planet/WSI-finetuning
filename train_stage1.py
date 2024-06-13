@@ -23,7 +23,7 @@ import numpy as np
 
 def main(args):
     # create results directory if necessary
-    print("results_dir",results_dir)
+    #print("results_dir",results_dir)
     if not os.path.isdir(args.results_dir):
         os.mkdir(args.results_dir)
 
@@ -124,8 +124,8 @@ args.task = "task_1_tumor_vs_normal"
 args.split_dir = "task_camelyon16/"
 args.csv_path = './dataset_csv/camelyon16.csv'
 #args.csv_path = '/kaggle/working/WSI-finetuning/dataset_csv/camelyon16.csv'
-#args.data_root_dir = "./data_feat"
-args.data_root_dir = "data_feat"
+args.data_root_dir = "./data_feat"
+#args.data_root_dir = "data_feat"
 sub_feat_dir = 'Camelyon16_patch256_res50'
 args.max_epochs = 50
 args.reg = 1e-04
