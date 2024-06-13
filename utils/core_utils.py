@@ -108,11 +108,6 @@ import pandas as pd
 
 # Assuming datasets is a dictionary with keys 'train', 'val', 'test'
 # and each key contains a DataFrame or other iterable data structure
-datasets = {
-    'train': train_data,  # replace train_data with your actual training data
-    'val': val_data,      # replace val_data with your actual validation data
-    'test': test_data     # replace test_data with your actual test data
-}
 
 def save_splits(datasets, split_names, file_path):
     # Combine all splits into a single DataFrame with an additional column indicating the split
