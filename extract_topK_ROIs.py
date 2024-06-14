@@ -59,8 +59,8 @@ if __name__ == '__main__':
     # load weights
     model_wsi.load_state_dict(ckpt,strict=False)
     model_wsi.eval()
-    if torch.cuda.is_available():
-        model_wsi.cuda()
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    model_wsi.cuda()
 
     total = len(bags_dataset)
     time_start = time.time()
