@@ -56,6 +56,12 @@ def eval(dataset, args, ckpt_path):
     print('auc: ', auc)
     return model, patient_results, test_error, auc, df
 
+import numpy as np
+import pandas as pd
+import torch
+from sklearn.metrics import roc_auc_score, roc_curve, auc, f1_score, precision_recall_curve, average_precision_score
+from sklearn.preprocessing import label_binarize
+
 def summary(model, loader, args):
     acc_logger = Accuracy_Logger(n_classes=args.n_classes)
     model.eval()
@@ -91,29 +97,44 @@ def summary(model, loader, args):
     test_error /= len(loader)
 
     aucs = []
+    auc_pk_scores = []
     if len(np.unique(all_labels)) == 1:
         auc_score = -1
-
+        auc_pk_score = -1
     else: 
         if args.n_classes == 2:
             auc_score = roc_auc_score(all_labels, all_probs[:, 1])
+            precision, recall, _ = precision_recall_curve(all_labels, all_probs[:, 1])
+            auc_pk_score = average_precision_score(all_labels, all_probs[:, 1])
         else:
             binary_labels = label_binarize(all_labels, classes=[i for i in range(args.n_classes)])
             for class_idx in range(args.n_classes):
                 if class_idx in all_labels:
                     fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
                     aucs.append(auc(fpr, tpr))
+                    precision, recall, _ = precision_recall_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                    auc_pk_scores.append(average_precision_score(binary_labels[:, class_idx], all_probs[:, class_idx]))
                 else:
                     aucs.append(float('nan'))
+                    auc_pk_scores.append(float('nan'))
             if args.micro_average:
-                binary_labels = label_binarize(all_labels, classes=[i for i in range(args.n_classes)])
                 fpr, tpr, _ = roc_curve(binary_labels.ravel(), all_probs.ravel())
                 auc_score = auc(fpr, tpr)
+                precision, recall, _ = precision_recall_curve(binary_labels.ravel(), all_probs.ravel())
+                auc_pk_score = average_precision_score(binary_labels.ravel(), all_probs.ravel())
             else:
                 auc_score = np.nanmean(np.array(aucs))
+                auc_pk_score = np.nanmean(np.array(auc_pk_scores))
+
+    # Calculate F1 score
+    if args.n_classes == 2:
+        f1 = f1_score(all_labels, all_preds)
+    else:
+        f1 = f1_score(all_labels, all_preds, average='weighted')
 
     results_dict = {'slide_id': slide_ids, 'Y': all_labels, 'Y_hat': all_preds}
     for c in range(args.n_classes):
         results_dict.update({'p_{}'.format(c): all_probs[:,c]})
     df = pd.DataFrame(results_dict)
-    return patient_results, test_error, auc_score, df, acc_logger
+    
+    return patient_results, test_error, auc_score, auc_pk_score, f1, df, acc_logger
