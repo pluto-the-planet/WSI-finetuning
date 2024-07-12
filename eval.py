@@ -119,10 +119,16 @@ else:
 ckpt_paths = [os.path.join(args.models_dir, 's_{}_checkpoint.pt'.format(fold)) for fold in folds]
 datasets_id = {'train': 0, 'val': 1, 'test': 2, 'all': -1}
 
+import os
+import pandas as pd
+
 if __name__ == "__main__":
     all_results = []
     all_auc = []
+    all_auc_pk = []
+    all_f1 = []
     all_acc = []
+    
     for ckpt_idx in range(len(ckpt_paths)):
         if datasets_id[args.split] < 0:
             split_dataset = dataset
@@ -130,15 +136,29 @@ if __name__ == "__main__":
             csv_path = '{}/splits_{}.csv'.format(args.splits_dir, folds[ckpt_idx])
             datasets = dataset.return_splits(from_id=False, csv_path=csv_path)
             split_dataset = datasets[datasets_id[args.split]]
-        model, patient_results, test_error, auc, df  = eval(split_dataset, args, ckpt_paths[ckpt_idx])
-        all_results.append(all_results)
+        
+        model, patient_results, test_error, auc, auc_pk, f1, df = eval(split_dataset, args, ckpt_paths[ckpt_idx])
+        
+        all_results.append(patient_results)
         all_auc.append(auc)
-        all_acc.append(1-test_error)
+        all_auc_pk.append(auc_pk)
+        all_f1.append(f1)
+        all_acc.append(1 - test_error)
+        
         df.to_csv(os.path.join(args.save_dir, 'fold_{}.csv'.format(folds[ckpt_idx])), index=False)
 
-    final_df = pd.DataFrame({'folds': folds, 'test_auc': all_auc, 'test_acc': all_acc})
+    final_df = pd.DataFrame({
+        'folds': folds,
+        'test_auc': all_auc,
+        'test_auc_pk': all_auc_pk,
+        'test_f1': all_f1,
+        'test_acc': all_acc
+    })
+    
     if len(folds) != args.k:
         save_name = 'summary_partial_{}_{}.csv'.format(folds[0], folds[-1])
     else:
         save_name = 'summary.csv'
+    
     final_df.to_csv(os.path.join(args.save_dir, save_name))
+
