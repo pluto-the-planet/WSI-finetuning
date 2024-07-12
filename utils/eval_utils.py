@@ -10,9 +10,9 @@ import os
 import pandas as pd
 from utils.utils import *
 from utils.core_utils import Accuracy_Logger
-from sklearn.metrics import roc_auc_score, roc_curve, auc
 from sklearn.preprocessing import label_binarize
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score, roc_curve, auc, f1_score, precision_recall_curve, average_precision_score
 
 def initiate_model(args, ckpt_path):
     print('Init Model')    
@@ -55,12 +55,6 @@ def eval(dataset, args, ckpt_path):
     print('test_error: ', test_error)
     print('auc: ', auc)
     return model, patient_results, test_error, auc, df
-
-import numpy as np
-import pandas as pd
-import torch
-from sklearn.metrics import roc_auc_score, roc_curve, auc, f1_score, precision_recall_curve, average_precision_score
-from sklearn.preprocessing import label_binarize
 
 def summary(model, loader, args):
     acc_logger = Accuracy_Logger(n_classes=args.n_classes)
