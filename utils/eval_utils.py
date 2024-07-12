@@ -51,10 +51,14 @@ def eval(dataset, args, ckpt_path):
     
     print('Init Loaders')
     loader = get_simple_loader(dataset)
-    patient_results, test_error, auc, df, _ = summary(model, loader, args)
+    patient_results, test_error, auc, auc_pk, f1, df, _ = summary(model, loader, args)
+    
     print('test_error: ', test_error)
     print('auc: ', auc)
-    return model, patient_results, test_error, auc, df
+    print('auc_pk: ', auc_pk)
+    print('f1: ', f1)
+    
+    return model, patient_results, test_error, auc, auc_pk, f1, df
 
 def summary(model, loader, args):
     acc_logger = Accuracy_Logger(n_classes=args.n_classes)
