@@ -23,7 +23,6 @@ import numpy as np
 
 def main(args):
     # create results directory if necessary
-    #print("results_dir",results_dir)
     if not os.path.isdir(args.results_dir):
         os.mkdir(args.results_dir)
 
@@ -38,30 +37,43 @@ def main(args):
 
     all_test_auc = []
     all_val_auc = []
+    all_test_auc_pk = []
+    all_val_auc_pk = []
+    all_test_f1 = []
+    all_val_f1 = []
     all_test_acc = []
     all_val_acc = []
     folds = np.arange(start, end)
-    print('folds:',folds)
+    print('folds:', folds)
     for i in folds:
-        seed_torch(args.seed+i)
-        # pdb.set_trace()
+        seed_torch(args.seed + i)
         train_dataset, val_dataset, test_dataset = dataset.return_splits(from_id=False,
                 csv_path='{}/splits_{}.csv'.format(args.split_dir, i))
-        # train_loader = get_split_loader(train_dataset)
-        print(train_dataset)
         datasets = (train_dataset, val_dataset, test_dataset)
-        print(datasets)
-        results, test_auc, val_auc, test_acc, val_acc  = train(datasets, i, args)
+        results, test_auc, val_auc, test_f1, val_f1 = train(datasets, i, args)
         all_test_auc.append(test_auc)
         all_val_auc.append(val_auc)
+        all_test_f1.append(test_f1)
+        all_val_f1.append(val_f1)
         all_test_acc.append(test_acc)
         all_val_acc.append(val_acc)
-        #write results to pkl
+        all_test_auc_pk.append(test_auc_pk)
+        all_val_auc_pk.append(val_auc_pk)
+        # write results to pkl
         filename = os.path.join(args.results_dir, 'split_{}_results.pkl'.format(i))
         save_pkl(filename, results)
 
-    final_df = pd.DataFrame({'folds': folds, 'test_auc': all_test_auc,
-        'val_auc': all_val_auc, 'test_acc': all_test_acc, 'val_acc' : all_val_acc})
+    final_df = pd.DataFrame({
+        'folds': folds,
+        'test_auc': all_test_auc,
+        'val_auc': all_val_auc,
+        'test_f1': all_test_f1,
+        'val_f1': all_val_f1,
+        'test_acc': all_test_acc,
+        'val_acc': all_val_acc,
+        'test_auc_pk': all_test_auc_pk,
+        'val_auc_pk': all_val_auc_pk
+    })
 
     if len(folds) != args.k:
         save_name = 'summary_partial_{}_{}.csv'.format(start, end)
