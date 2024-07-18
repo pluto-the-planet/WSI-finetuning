@@ -227,8 +227,8 @@ def train(datasets, cur, args):
         writer.add_scalar('final/test_auc', test_auc, 0)
         writer.add_scalar('final/test_auc_pk', test_auc_pk, 0)
         writer.close()
-    
-    return results_dict, test_auc, val_auc, test_f1, val_f1
+    #results,test_acc,val_acc, test_auc, val_auc, test_f1, val_f1,test_auc_pk, val_auc_pk
+    return results_dict,test_acc,val_acc, test_auc, val_auc, test_f1, val_f1,test_auc_pk, val_auc_pk
 
 
 def test(datasets, cur, args):
