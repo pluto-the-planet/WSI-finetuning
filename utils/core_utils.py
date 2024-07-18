@@ -206,7 +206,7 @@ def train(datasets, cur, args):
         model.load_state_dict(torch.load(os.path.join(args.results_dir, "s_{}_checkpoint.pt".format(cur))))
     else:
         torch.save(model.state_dict(), os.path.join(args.results_dir, "s_{}_checkpoint.pt".format(cur)))
-    
+    #patient_results, test_error, auc_score, auc_pk_score, f1, acc_logger
     _, val_error, val_auc, val_auc_pk, val_f1, val_logger = summary(model, val_loader, args.n_classes)
     print('Val error: {:.4f}, ROC AUC: {:.4f}, PR AUC: {:.4f}, F1: {:.4f}'.format(val_error, val_auc, val_auc_pk, val_f1))
     
@@ -302,7 +302,7 @@ def test(datasets, cur, args):
 
     ckpt = torch.load(os.path.join(args.results_dir, "s_{}_checkpoint.pt".format(cur)))
     model.load_state_dict(ckpt, strict=False)
-
+    #patient_results, test_error, auc_score, auc_pk_score, f1, acc_logger
     results_dict, test_error, test_auc, test_auc_pk, test_f1, acc_logger = summary(model, test_loader, args.n_classes)
     print('Test error: {:.4f}, ROC AUC: {:.4f}, PR AUC: {:.4f}, F1: {:.4f}'.format(test_error, test_auc, test_auc_pk, test_f1))
 
@@ -463,26 +463,34 @@ def validate(cur, epoch, model, loader, n_classes, early_stopping = None, writer
     val_loss /= len(loader)
 
     if n_classes == 2:
-        auc = roc_auc_score(labels, prob[:, 1])
+            auc = roc_auc_score(all_labels, all_probs[:, 1])
+            precision, recall, _ = precision_recall_curve(all_labels, all_probs[:, 1])
+            auc_pk_score = average_precision_score(all_labels, all_probs[:, 1])
+            f1 = f1_score(all_labels, all_preds)
     else:
-        aucs = []
-        binary_labels = label_binarize(labels, classes=[i for i in range(n_classes)])
+        binary_labels = label_binarize(all_labels, classes=[i for i in range(n_classes)])
         for class_idx in range(n_classes):
-            if class_idx in labels:
-                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], prob[:, class_idx])
+            if class_idx in all_labels:
+                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
                 aucs.append(calc_auc(fpr, tpr))
+                precision, recall, _ = precision_recall_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                auc_pk_scores.append(average_precision_score(binary_labels[:, class_idx], all_probs[:, class_idx]))
             else:
                 aucs.append(float('nan'))
-
-        auc = np.nanmean(np.array(aucs))
+                auc_pk_scores.append(float('nan'))
+        auc_score = np.nanmean(np.array(aucs))
+        auc_pk_score = np.nanmean(np.array(auc_pk_scores))
     
     
     if writer:
         writer.add_scalar('val/loss', val_loss, epoch)
         writer.add_scalar('val/auc', auc, epoch)
+        writer.add_scalar('val/auc_pk_score', auc_pk_score, epoch)
+        writer.add_scalar('val/f1', f1, epoch)
         writer.add_scalar('val/error', val_error, epoch)
+        writer.add_scalar('val/inst_loss', val_inst_loss, epoch)
 
-    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}'.format(val_loss, val_error, auc))
+    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f},f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
     for i in range(n_classes):
         acc, correct, count = acc_logger.get_summary(i)
         print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))     
@@ -544,20 +552,25 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
     val_loss /= len(loader)
 
     if n_classes == 2:
-        auc = roc_auc_score(labels, prob[:, 1])
+            auc = roc_auc_score(all_labels, all_probs[:, 1])
+            precision, recall, _ = precision_recall_curve(all_labels, all_probs[:, 1])
+            auc_pk_score = average_precision_score(all_labels, all_probs[:, 1])
+            f1 = f1_score(all_labels, all_preds)
     else:
-        aucs = []
-        binary_labels = label_binarize(labels, classes=[i for i in range(n_classes)])
+        binary_labels = label_binarize(all_labels, classes=[i for i in range(n_classes)])
         for class_idx in range(n_classes):
-            if class_idx in labels:
-                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], prob[:, class_idx])
+            if class_idx in all_labels:
+                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
                 aucs.append(calc_auc(fpr, tpr))
+                precision, recall, _ = precision_recall_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                auc_pk_scores.append(average_precision_score(binary_labels[:, class_idx], all_probs[:, class_idx]))
             else:
                 aucs.append(float('nan'))
+                auc_pk_scores.append(float('nan'))
+        auc_score = np.nanmean(np.array(aucs))
+        auc_pk_score = np.nanmean(np.array(auc_pk_scores))
 
-        auc = np.nanmean(np.array(aucs))
-
-    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}'.format(val_loss, val_error, auc))
+    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f},f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
     if inst_count > 0:
         val_inst_loss /= inst_count
         for i in range(2):
@@ -567,6 +580,8 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
     if writer:
         writer.add_scalar('val/loss', val_loss, epoch)
         writer.add_scalar('val/auc', auc, epoch)
+        writer.add_scalar('val/auc_pk_score', auc_pk_score, epoch)
+        writer.add_scalar('val/f1', f1, epoch)
         writer.add_scalar('val/error', val_error, epoch)
         writer.add_scalar('val/inst_loss', val_inst_loss, epoch)
 
@@ -590,14 +605,14 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
     return False
 
 def summary(model, loader, n_classes):
-    device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     acc_logger = Accuracy_Logger(n_classes=n_classes)
     model.eval()
-    test_loss = 0.
     test_error = 0.
 
     all_probs = np.zeros((len(loader), n_classes))
     all_labels = np.zeros(len(loader))
+    all_preds = np.zeros(len(loader))
 
     slide_ids = loader.dataset.slide_data['slide_id']
     patient_results = {}
@@ -605,35 +620,49 @@ def summary(model, loader, n_classes):
     for batch_idx, (data, label) in enumerate(loader):
         data, label = data.to(device), label.to(device)
         slide_id = slide_ids.iloc[batch_idx]
-        # pdb.set_trace()
+
         with torch.no_grad():
-            logits, Y_prob, Y_hat, _, _ = model(data,testing=True)
+            logits, Y_prob, Y_hat, _, _ = model(data, testing=True)
 
         acc_logger.log(Y_hat, label)
         probs = Y_prob.cpu().numpy()
         all_probs[batch_idx] = probs
         all_labels[batch_idx] = label.item()
-        
+        all_preds[batch_idx] = Y_hat.item()
+
         patient_results.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item()}})
         error = calculate_error(Y_hat, label)
         test_error += error
 
     test_error /= len(loader)
 
-    if n_classes == 2:
-        auc = roc_auc_score(all_labels, all_probs[:, 1])
-        aucs = []
+    aucs = []
+    auc_pk_scores = []
+    if len(np.unique(all_labels)) == 1:
+        auc_score = -1
+        auc_pk_score = -1
     else:
-        aucs = []
-        binary_labels = label_binarize(all_labels, classes=[i for i in range(n_classes)])
-        for class_idx in range(n_classes):
-            if class_idx in all_labels:
-                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
-                aucs.append(calc_auc(fpr, tpr))
-            else:
-                aucs.append(float('nan'))
+        if n_classes == 2:
+            auc_score = roc_auc_score(all_labels, all_probs[:, 1])
+            precision, recall, _ = precision_recall_curve(all_labels, all_probs[:, 1])
+            auc_pk_score = average_precision_score(all_labels, all_probs[:, 1])
+        else:
+            binary_labels = label_binarize(all_labels, classes=[i for i in range(n_classes)])
+            for class_idx in range(n_classes):
+                if class_idx in all_labels:
+                    fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                    aucs.append(calc_auc(fpr, tpr))
+                    precision, recall, _ = precision_recall_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                    auc_pk_scores.append(average_precision_score(binary_labels[:, class_idx], all_probs[:, class_idx]))
+                else:
+                    aucs.append(float('nan'))
+                    auc_pk_scores.append(float('nan'))
+            auc_score = np.nanmean(np.array(aucs))
+            auc_pk_score = np.nanmean(np.array(auc_pk_scores))
 
-        auc = np.nanmean(np.array(aucs))
+    if n_classes == 2:
+        f1 = f1_score(all_labels, all_preds)
+    else:
+        f1 = f1_score(all_labels, all_preds, average='weighted')
 
-
-    return patient_results, test_error, auc, acc_logger
+    return patient_results, test_error, auc_score, auc_pk_score, f1, acc_logger
