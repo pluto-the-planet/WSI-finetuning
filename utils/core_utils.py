@@ -555,7 +555,7 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
         auc = roc_auc_score(labels, prob[:, 1])
         precision, recall, _ = precision_recall_curve(labels, prob[:, 1])
         auc_pk_score = average_precision_score(labels, prob[:, 1])
-        #f1 = f1_score(labels, Y_hat)
+        f1 = f1_score(labels, prob[:, 1])
     else:
         binary_labels = label_binarize(labels, classes=[i for i in range(n_classes)])
         for class_idx in range(n_classes):
@@ -570,7 +570,8 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
         auc_score = np.nanmean(np.array(aucs))
         auc_pk_score = np.nanmean(np.array(auc_pk_scores))
 
-    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f}, f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
+    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score))
+    print( 'f1: ',f1)
     if inst_count > 0:
         val_inst_loss /= inst_count
         for i in range(2):
