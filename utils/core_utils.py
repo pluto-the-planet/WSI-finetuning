@@ -50,16 +50,12 @@ class Accuracy_Logger(object):
             acc = None
         else:
             acc = float(correct) / count
+            y_true = np.asarray(self.data_all['y_true']).reshape(-1,)
+            y_pred = np.asarray(self.data_all['y_pred']).reshape(-1,)
+            f1 = f1_score(y_true,y_pred,average='macro')
         
-        return acc, correct, count
-
-    def get_f1(self):
-        y_true = np.asarray(self.data_all['y_true']).reshape(-1,)
-        y_pred = np.asarray(self.data_all['y_pred']).reshape(-1,)
-        f1 = f1_score(y_true,y_pred,average='macro')
-        return f1
-
-
+        return acc, correct, count, f1
+        
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
@@ -214,8 +210,8 @@ def train(datasets, cur, args):
     print('Test error: {:.4f}, ROC AUC: {:.4f}, PR AUC: {:.4f}, F1: {:.4f}'.format(test_error, test_auc, test_auc_pk, test_f1))
 
     for i in range(args.n_classes):
-        acc, correct, count = acc_logger.get_summary(i)
-        print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))
+        acc, correct, count, f1 = acc_logger.get_summary(i)
+        print('class {}: acc {}, correct {}/{},f1:{}'.format(i, acc, correct, count, f1))
         if writer:
             writer.add_scalar('final/test_class_{}_acc'.format(i), acc, 0)
     
@@ -369,13 +365,13 @@ def train_loop_clam(epoch, model, loader, optimizer, n_classes, bag_weight, writ
         train_inst_loss /= inst_count
         print('\n')
         for i in range(2):
-            acc, correct, count = inst_logger.get_summary(i)
+            acc, correct, count, f1 = inst_logger.get_summary(i)
             print('class {} clustering acc {}: correct {}/{}'.format(i, acc, correct, count))
 
-    print('Epoch: {}, train_loss: {:.4f}, train_clustering_loss:  {:.4f}, train_error: {:.4f}'.format(epoch, train_loss, train_inst_loss,  train_error))
+    print('Epoch: {}, train_loss: {:.4f}, train_clustering_loss:  {:.4f}, train_error: {:.4f}, F1: {:.4f}'.format(epoch, train_loss, train_inst_loss,  train_error,f1))
     for i in range(n_classes):
-        acc, correct, count = acc_logger.get_summary(i)
-        print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))
+        acc, correct, count, f1 = acc_logger.get_summary(i)
+        print('class {}: acc {}, correct {}/{}, F1 {}'.format(i, acc, correct, count,f1))
         if writer and acc is not None:
             writer.add_scalar('train/class_{}_acc'.format(i), acc, epoch)
 
@@ -418,10 +414,10 @@ def train_loop(epoch, model, loader, optimizer, n_classes, writer = None, loss_f
     train_loss /= len(loader)
     train_error /= len(loader)
 
-    print('Epoch: {}, train_loss: {:.4f}, train_error: {:.4f}'.format(epoch, train_loss, train_error))
+    print('Epoch: {}, train_loss: {:.4f}, train_error: {:.4f}, F1: {:.4f}'.format(epoch, train_loss, train_error,f1))
     for i in range(n_classes):
-        acc, correct, count = acc_logger.get_summary(i)
-        print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))
+        acc, correct, count,f1 = acc_logger.get_summary(i)
+        print('class {}: acc {}, correct {}/{},F1 {}'.format(i, acc, correct, count,f1))
         if writer:
             writer.add_scalar('train/class_{}_acc'.format(i), acc, epoch)
 
@@ -490,7 +486,7 @@ def validate(cur, epoch, model, loader, n_classes, early_stopping = None, writer
         writer.add_scalar('val/error', val_error, epoch)
         writer.add_scalar('val/inst_loss', val_inst_loss, epoch)
 
-    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f},f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
+    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f}, f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
     for i in range(n_classes):
         acc, correct, count = acc_logger.get_summary(i)
         print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))     
@@ -570,11 +566,11 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
         auc_score = np.nanmean(np.array(aucs))
         auc_pk_score = np.nanmean(np.array(auc_pk_scores))
 
-    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f},f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
+    print('\nVal Set, val_loss: {:.4f}, val_error: {:.4f}, auc: {:.4f}, auc_pk_score: {:.4f}, f1: {:.4f}'.format(val_loss, val_error, auc, auc_pk_score, f1))
     if inst_count > 0:
         val_inst_loss /= inst_count
         for i in range(2):
-            acc, correct, count = inst_logger.get_summary(i)
+            acc, correct, count, f1 = inst_logger.get_summary(i)
             print('class {} clustering acc {}: correct {}/{}'.format(i, acc, correct, count))
     
     if writer:
@@ -587,8 +583,8 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
 
 
     for i in range(n_classes):
-        acc, correct, count = acc_logger.get_summary(i)
-        print('class {}: acc {}, correct {}/{}'.format(i, acc, correct, count))
+        acc, correct, count, f1 = acc_logger.get_summary(i)
+        print('class {}: acc {}, correct {}/{}, F1 {}'.format(i, acc, correct, count,f1))
         
         if writer and acc is not None:
             writer.add_scalar('val/class_{}_acc'.format(i), acc, epoch)
