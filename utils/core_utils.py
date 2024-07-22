@@ -368,8 +368,10 @@ def train_loop_clam(epoch, model, loader, optimizer, n_classes, bag_weight, writ
         for i in range(2):
             acc, correct, count, f1 = inst_logger.get_summary(i)
             print('class {} clustering acc {}: correct {}/{}'.format(i, acc, correct, count))
+            print('F1: ',f1)
 
-    print('Epoch: {}, train_loss: {:.4f}, train_clustering_loss:  {:.4f}, train_error: {:.4f}, F1: {:.4f}'.format(epoch, train_loss, train_inst_loss,  train_error,f1))
+    print('Epoch: {}, train_loss: {:.4f}, train_clustering_loss:  {:.4f}, train_error: {:.4f}'.format(epoch, train_loss, train_inst_loss,  train_error))
+    print('F1: ',f1)
     for i in range(n_classes):
         acc, correct, count, f1 = acc_logger.get_summary(i)
         print('class {}: acc {}, correct {}/{}, F1 {}'.format(i, acc, correct, count,f1))
