@@ -67,8 +67,6 @@ def main(args):
         'val_auc': all_val_auc,
         'test_f1': all_test_f1,
         'val_f1': all_val_f1,
-        'test_acc': all_test_acc,
-        'val_acc': all_val_acc,
         'test_auc_pk': all_test_auc_pk,
         'val_auc_pk': all_val_auc_pk
     })
