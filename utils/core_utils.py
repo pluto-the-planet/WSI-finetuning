@@ -548,18 +548,19 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
     val_loss /= len(loader)
 
     if n_classes == 2:
-            auc = roc_auc_score(all_labels, all_probs[:, 1])
-            precision, recall, _ = precision_recall_curve(all_labels, all_probs[:, 1])
-            auc_pk_score = average_precision_score(all_labels, all_probs[:, 1])
-            f1 = f1_score(all_labels, all_preds)
+        #auc = roc_auc_score(labels, prob[:, 1])
+        auc = roc_auc_score(labels, prob[:, 1])
+        precision, recall, _ = precision_recall_curve(labels, prob[:, 1])
+        auc_pk_score = average_precision_score(labels, prob[:, 1])
+        f1 = f1_score(labels, Y_hat)
     else:
-        binary_labels = label_binarize(all_labels, classes=[i for i in range(n_classes)])
+        binary_labels = label_binarize(labels, classes=[i for i in range(n_classes)])
         for class_idx in range(n_classes):
             if class_idx in all_labels:
-                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
+                fpr, tpr, _ = roc_curve(binary_labels[:, class_idx], prob[:, class_idx])
                 aucs.append(calc_auc(fpr, tpr))
-                precision, recall, _ = precision_recall_curve(binary_labels[:, class_idx], all_probs[:, class_idx])
-                auc_pk_scores.append(average_precision_score(binary_labels[:, class_idx], all_probs[:, class_idx]))
+                precision, recall, _ = precision_recall_curve(binary_labels[:, class_idx], prob[:, class_idx])
+                auc_pk_scores.append(average_precision_score(binary_labels[:, class_idx], prob[:, class_idx]))
             else:
                 aucs.append(float('nan'))
                 auc_pk_scores.append(float('nan'))
