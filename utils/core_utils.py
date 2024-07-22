@@ -555,7 +555,7 @@ def validate_clam(cur, epoch, model, loader, n_classes, early_stopping = None, w
         auc = roc_auc_score(labels, prob[:, 1])
         precision, recall, _ = precision_recall_curve(labels, prob[:, 1])
         auc_pk_score = average_precision_score(labels, prob[:, 1])
-        f1 = f1_score(labels, Y_hat)
+        #f1 = f1_score(labels, Y_hat)
     else:
         binary_labels = label_binarize(labels, classes=[i for i in range(n_classes)])
         for class_idx in range(n_classes):
