@@ -7,7 +7,7 @@ import os
 from models.model_mil import MIL_fc, MIL_fc_mc
 #
 from sklearn.preprocessing import label_binarize
-from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import roc_auc_score, roc_curve, auc, f1_score, precision_recall_curve, average_precision_score
 from sklearn.metrics import auc as calc_auc
 from sklearn.metrics import f1_score
 class Accuracy_Logger(object):
