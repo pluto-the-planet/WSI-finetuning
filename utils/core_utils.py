@@ -45,6 +45,7 @@ class Accuracy_Logger(object):
     def get_summary(self, c):
         count = self.data[c]["count"] 
         correct = self.data[c]["correct"]
+        f1=None
         # pdb.set_trace()
         if count == 0:
             acc = None
